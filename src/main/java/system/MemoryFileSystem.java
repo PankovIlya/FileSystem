@@ -7,7 +7,9 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import static system.data.Dir.IS_DIR;
 import static system.data.ErrorCode.*;
+import static system.data.File.IS_FILE;
 
 public class MemoryFileSystem implements IMemoryFileSystem {
 
@@ -218,7 +220,7 @@ public class MemoryFileSystem implements IMemoryFileSystem {
 
     private Status<List<Node>> findNode(Dir parent, String name, boolean findAll, boolean subDir, boolean isDir) {
         return handelException(() -> {
-            List<Node> result = findAllNode(parent, name, findAll, subDir, isDir? 0: 1);
+            List<Node> result = findAllNode(parent, name, findAll, subDir, isDir? IS_DIR: IS_FILE);
             return new Status<>(OK, result);
         });
     }

@@ -5,15 +5,11 @@ import java.util.Objects;
 public class INode extends Node {
 
     INode sibling;
-    int pos;
+    private final int pos;
 
     public INode(String path, String name, int pos) {
         super(path, name);
         this.pos = pos;
-    }
-
-    public INode(Node node) {
-        super(node);
     }
 
     public INode getSibling() {

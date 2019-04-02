@@ -2,17 +2,14 @@ package system.data;
 
 public class Dir extends INode {
 
+    public static int IS_DIR = 73;
+
     Dir child;
     File file;
 
 
     public Dir(String path, String name) {
-        super(path, name, 0);
-    }
-
-    public Dir(Node node) {
-        super(node);
-        pos = 0;
+        super(path, name, IS_DIR);
     }
 
     @Override
