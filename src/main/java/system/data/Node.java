@@ -35,7 +35,7 @@ public class Node {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (o == null) return false;
         Node node = (Node) o;
         return path.equals(node.path) &&
                 name.equals(node.name);

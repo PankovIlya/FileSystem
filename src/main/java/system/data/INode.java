@@ -7,8 +7,9 @@ public class INode extends Node {
     INode sibling;
     int pos;
 
-    public INode(String path, String name) {
+    public INode(String path, String name, int pos) {
         super(path, name);
+        this.pos = pos;
     }
 
     public INode(Node node) {
@@ -26,7 +27,7 @@ public class INode extends Node {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (o == null) return false;
         if (!super.equals(o)) return false;
         INode iNode = (INode) o;
         return pos == iNode.pos;
