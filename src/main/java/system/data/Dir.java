@@ -7,8 +7,7 @@ public class Dir extends INode {
 
 
     public Dir(String path, String name) {
-        super(path, name);
-        pos = 0;
+        super(path, name, 0);
     }
 
     public Dir(Node node) {

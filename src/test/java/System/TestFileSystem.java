@@ -28,6 +28,14 @@ public class TestFileSystem {
     }
 
     @Test
+    public void testCreateDirAndFileSimple() {
+        MemoryFileSystem system = new MemoryFileSystem(256);
+        testCreateFileSimple(system);
+        Status<Node> statusFile = system.addFile("/", "test");
+        assert statusFile.code == 0;
+    }
+
+    @Test
     public void testDeleteFileSimple() {
         MemoryFileSystem system = new MemoryFileSystem(256);
         Status<Node> status = testCreateFileSimple(system);

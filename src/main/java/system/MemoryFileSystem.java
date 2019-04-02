@@ -3,6 +3,7 @@ package system;
 import system.data.*;
 
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -26,22 +27,20 @@ public class MemoryFileSystem implements IMemoryFileSystem {
 
     @Override
     public Status<Node> addDir(String path, String name) {
-        try {
+        return handelException(() -> {
             if (!checkName(name)) {
                 return new Status<>(NOT_VALID_NAME);
             }
 
             Dir newDir = new Dir(path, name);
             return addNode(newDir, true);
-
-        } catch (Exception e) {
-            return new Status<>(UNKNOWN_ERROR, e.getMessage());
-        }
+        });
     }
+
 
     @Override
     public Status<Node> addFile(String path, String name) {
-        try {
+        return handelException(() -> {
             if (!checkName(name)) {
                 return new Status<>(NOT_VALID_NAME);
             }
@@ -49,10 +48,7 @@ public class MemoryFileSystem implements IMemoryFileSystem {
             File newFile = new File(path, name);
             return addNode(newFile, false);
 
-        } catch (Exception e) {
-            return new Status<>(UNKNOWN_ERROR, e.getMessage());
-        }
-
+        });
     }
 
     @Override
@@ -83,20 +79,12 @@ public class MemoryFileSystem implements IMemoryFileSystem {
 
     @Override
     public Status deleteDir(String path) {
-        try {
-            return checkAndDeleteDir(getKey(path));
-        } catch (Exception e) {
-            return new Status<>(UNKNOWN_ERROR, e.getMessage());
-        }
+        return handelException(() ->  checkAndDeleteDir(getKey(path)));
     }
 
     @Override
     public Status deleteFile(String path) {
-        try {
-            return deleteFile(getFile(path), path);
-        } catch (Exception e) {
-            return new Status<>(UNKNOWN_ERROR, e.getMessage());
-        }
+        return handelException(() -> deleteFile(getFile(path), path));
     }
 
     private Status<Node> addNode(INode node, boolean isDir) {
@@ -132,15 +120,18 @@ public class MemoryFileSystem implements IMemoryFileSystem {
 
 
     private Status<List<Node>> findAndCheckNode(String path, String name, boolean findAll, boolean subDir, boolean isDir) {
-        if (!checkName(name)) {
-            return new Status<>(NOT_VALID_NAME);
-        }
-        Dir parent = (Dir) exists(getKey(path));
-        if (parent == null) {
-            return new Status<>(DIR_NOT_FOUND, path);
-        }
+        return handelException(() -> {
 
-        return findNode(parent, name, findAll, subDir, false);
+            if (!checkName(name)) {
+                return new Status<>(NOT_VALID_NAME);
+            }
+            Dir parent = (Dir) exists(getKey(path));
+            if (parent == null) {
+                return new Status<>(DIR_NOT_FOUND, path);
+            }
+
+            return findNode(parent, name, findAll, subDir, false);
+        });
     }
 
     private Status checkAndDeleteDir(Dir node) {
@@ -226,15 +217,13 @@ public class MemoryFileSystem implements IMemoryFileSystem {
     }
 
     private Status<List<Node>> findNode(Dir parent, String name, boolean findAll, boolean subDir, boolean isDir) {
-        try {
-            List<Node> result = findAllNode(parent, name, findAll, subDir, isDir);
+        return handelException(() -> {
+            List<Node> result = findAllNode(parent, name, findAll, subDir, isDir? 0: 1);
             return new Status<>(OK, result);
-        } catch (Exception e) {
-            return new Status<>(UNKNOWN_ERROR, e.getMessage());
-        }
+        });
     }
 
-    private List<Node> findAllNode(Dir dir, String name, boolean findAll, boolean subDir, boolean isDir) {
+    private List<Node> findAllNode(Dir dir, String name, boolean findAll, boolean subDir, int isDir) {
         beginRead();
         try {
             final Deque<Dir> queue = new LinkedList<>();
@@ -246,16 +235,14 @@ public class MemoryFileSystem implements IMemoryFileSystem {
                     break;
 
                 Dir current = queue.pop();
+
                 if (current.getSibling() != null)
                     queue.addFirst(current.getSibling());
+
                 if (subDir && current.getChild() != null)
                     queue.addLast(current.getChild());
 
-                INode node;
-                if (isDir)
-                    node = new Dir(current.getPath(), name);
-                else
-                    node = new File(current.getPath(), name);
+                INode node = new INode(current.getPath(), name, isDir);
 
                 INode res = getINode(node);
                 if (res != null)
@@ -357,6 +344,14 @@ public class MemoryFileSystem implements IMemoryFileSystem {
 
     private boolean checkName(String name) {
         return !(name == null || name.isEmpty() || name.contains(SPACE) || name.length() > this.MAX_LENGTH_NAME);
+    }
+
+    private <T> Status<T> handelException(Callable< Status<T>> call){
+        try {
+            return call.call();
+        } catch (Exception e) {
+            return new Status<>(UNKNOWN_ERROR, e.getMessage());
+        }
     }
 
 }

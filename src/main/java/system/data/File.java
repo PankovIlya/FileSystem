@@ -12,9 +12,8 @@ public class File extends INode {
 
 
     public File(String path, String name) {
-        super(path, name);
+        super(path, name, 1);
         this.timestamp = System.currentTimeMillis();
-        pos = 1;
     }
 
     public File(Node node) {
